@@ -1,0 +1,32 @@
+version: '3.8'
+services:
+  mydb:
+    image: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=1234
+      - MYSQL_DATABASE=ordersystem
+    ports:
+      - "3307:3306"
+  myredis:
+    image: redis
+    ports:
+      - "6379:6379"
+  my-spring:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    # mydb, myredis 실행 전에 spring 실행 안함
+    depends_on:
+      - mydb
+      - myredis
+    # 실패해도 재실행 ex) 스키마 생성이 아직 안됬을경
+    restart: on-failure:10
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mydb:3306/ordersystem?useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=1234
+      - SPRING_REDIS_HOST=myredis
+      - SPRING_REDIS_PORT=6379
